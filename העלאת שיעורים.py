@@ -20,7 +20,6 @@ class Lesson:
 	def __init__(self, dir, file_name):
 		self.dir = dir
 		self.fname = file_name
-		self.path = lambda: os.path.join(self.dir, self.fname)
 		self.index_letter = ''
 		self.rav = ''
 		self.rav_dir = ''
@@ -28,23 +27,35 @@ class Lesson:
 		self.day = ''
 		self.month = ''
 		self.year = config.CURRENT_YEAR
-		self.date = lambda: self.day + ' ' + self.month + ' ' + self.year
 		self.title = ''
-		self.extension = os.path.splitext(self.path())[1]
-		self.name = lambda: ' - '.join([self.index_letter + self.rav, self.topic, self.date(), self.title])
+		self.extension = os.path.splitext(self.path)[1]
+		
+	@property
+	def path(self):
+		return os.path.join(self.dir, self.fname)
+	
+	@property
+	def date(self):
+		return self.day + ' ' + self.month + ' ' + self.year
+	
+	@property
+	def name(self):
+		return ' - '.join([self.index_letter + self.rav, self.topic, 
+		     				self.date, self.title])
 
 	def listen(self):
-		open_file = open(self.path(), 'rb+')
+		open_file = open(self.path, 'rb+')
 		print('האזן לשיעור')
-		os.startfile(self.path())
+		# work only on windows
+		os.startfile(self.path)
 		open_file.close()
 
 	def delete_file(self):
-		os.remove(self.path())
+		os.remove(self.path)
 		print('הקובץ נמחק.')
 
 	def copy_file(self, to_dir):
-		shutil.copy2(self.path(), os.path.join(to_dir,self.fname))
+		shutil.copy2(self.path, os.path.join(to_dir, self.fname))
 
 	def move_file(self, to_dir):
 		self.copy_file(to_dir)
@@ -55,18 +66,20 @@ class Lesson:
 	def parse_name(self):
 		name_parts = self.fname.split('-')
 		if len(name_parts) < 4 or len(name_parts) > 5:
-			print(f'can\'t parse the filename "{self.fname}" as a Lesson. because there are' + \
-	            '5 or more' if len(name_parts) > 5 else '2 or less' + 'seperations with " - " ')
+			print(f'can\'t parse the filename "{self.fname}" '
+	 			'as a Lesson. because there are' + 
+				'5 or more' if len(name_parts) > 5 else '2 or less' 
+				+ 'seperations with " - " ')
 		elif len(name_parts) == 4:
 			self.rav = name_parts[0]
 			self.topic = name_parts[1]
-			self.date = lambda: name_parts[2]
+			self.day, self.month, self.year = name_parts[2].split()
 			self.title = name_parts[3]
 		elif len(name_parts) == 5:
 			self.index_letter = name_parts[0]
 			self.rav = name_parts[1]
 			self.topic = name_parts[2]
-			self.date = lambda: name_parts[3]
+			self.day, self.month, self.year = name_parts[3].split()
 			self.title = name_parts[4]
 			self.validations()
 
@@ -76,8 +89,8 @@ class Lesson:
 
 	def change_name(self, name=None):
 		if name is None:
-			name = self.name()
-		os.rename(self.path(), os.path.join(self.dir,name))
+			name = self.name
+		os.rename(self.path, os.path.join(self.dir, name))
 		self.fname = name
 		print('שם הקובץ שונה.')
 
@@ -139,7 +152,8 @@ class Lesson:
 
 	def set_index(self):
 		if os.path.isdir(os.path.join(self.rav_dir, self.topic)):
-			check_prev = os.listdir(os.path.join(self.rav_dir, self.topic)) # הוספת אות האינדקס בתחילת שם הקובץ
+			# הוספת אות האינדקס בתחילת שם הקובץ
+			check_prev = os.listdir(os.path.join(self.rav_dir, self.topic))
 			check_prev.sort()
 			prev_index = check_prev[-1].split(" - ", 1)[0]
 			# TODO parse_name method
@@ -159,7 +173,8 @@ class Lesson:
 def copy_to_edit(directory1):
 	print('מעתיק קבצים...')
 	for file in os.listdir(directory1):
-		shutil.copy2(os.path.join(directory1, file), os.path.join(config.directory2, file))
+		shutil.copy2(os.path.join(directory1, file), 
+	       			os.path.join(config.directory2, file))
 		print('קובץ %s הועתק בהצלחה' % file)
 	print('הסתיימה העתקת הקבצים!')
 
@@ -169,7 +184,8 @@ def edit_names(month):
 		lesson = Lesson(config.directory2, file)
 		lesson.listen()
 		
-		is_valid_file = input('האם השיעור תקין? (לא/דלג/כלום) ') # בדיקה אם למחוק את הקובץ או לדלג עליו
+		# בדיקה אם למחוק את הקובץ או לדלג עליו
+		is_valid_file = input('האם השיעור תקין? (לא/דלג/כלום) ') 
 		if is_valid_file == "דלג":
 			continue
 		if is_valid_file == 'לא':
@@ -183,7 +199,8 @@ def edit_names(month):
 		lesson_title = input("נושא השיעור: ") # שינוי השם עצמו
 		lesson.set_title(lesson_title)
 
-		day_in_month = input("תאריך (היום בחודש בלבד בלי מרכאות, אם לא הגדרת חודש בהתחלה הוסף אותו עכשיו): ")
+		day_in_month = input("תאריך (היום בחודש בלבד בלי מרכאות, "
+		       				"אם לא הגדרת חודש בהתחלה הוסף אותו עכשיו): ")
 		split_day = day_in_month.split(' ')
 		if match('[א-ל][א-ט]?', split_day[0]):
 			fixed_day = split_day[0]
@@ -211,7 +228,8 @@ def cut_at_the_end():
 	input("סגור את הנגן.")
 	while to_move != 'כן':
 		to_move = input('האם להעביר לתיקיות? (כן) ')
-	delete_old = input("האם לפנות את תיקיית שיעורים מהשבוע האחרון? (כן/כלום) ") # פינוי תיקיית שיעורים מהשבוע האחרון
+	# פינוי תיקיית שיעורים מהשבוע האחרון
+	delete_old = input("האם לפנות את תיקיית שיעורים מהשבוע האחרון? (כן/כלום) ")
 	if delete_old == "כן":
 		for old_file in os.listdir(config.directory3):
 			os.remove(os.path.join(config.directory3, old_file))
@@ -265,7 +283,8 @@ def main():
 	cut_at_the_end()
 	if directory1:
 		delete_recorder(directory1)
-	print('\nפעולת התוכנה הסתיימה.\nאנא לא לשכוח לעבור לתיקיית שנת %s כדי לסיים את המלאכה.\nאשריך וטוב לך ובהצלחה במשמר!' % config.CURRENT_YEAR)
+	print('\nפעולת התוכנה הסתיימה.\nאנא לא לשכוח לעבור לתיקיית שנת '
+       f'{config.CURRENT_YEAR} כדי לסיים את המלאכה.\nאשריך וטוב לך ובהצלחה במשמר!')
 
 if __name__ == '__main__':
 	main()
