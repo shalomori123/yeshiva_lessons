@@ -15,6 +15,15 @@ ALEPHBET = ('א', 'ב', 'ג', 'ד', 'ה', 'ו', 'ז', 'ח', 'ט',
 'פ', 'פא', 'פב', 'פג', 'פד', 'פה', 'פו', 'פז', 'פח', 'פט',
 'צ', 'צא', 'צב', 'צג', 'צד', 'צה', 'צו', 'צז', 'צח', 'צט')
 
+MONTHES = ("תשרי", "חשוון", "כסלו", "טבת", "שבט", "אדר", "ניסן", "אייר", "סיוון", "תמוז", "אב", "אלול",
+	   "חשון", "מרחשוון", "כסליו", "אדר א", "אדר א'", "אדר ב", "אדר ב'", "סיון", "מנחם אב", "")
+
+MONTH_DAYS = ('א', 'ב', 'ג', 'ד', 'ה', 'ו', 'ז', 'ח', 'ט',
+'י', 'יא', 'יב', 'יג', 'יד', 'טו', 'טז', 'יז', 'יח', 'יט',
+'כ', 'כא', 'כב', 'כג', 'כד', 'כה', 'כו', 'כז', 'כח', 'כט', 'ל')
+
+
+
 class Lesson:
 	"""class to define one file of record."""
 	def __init__(self, directory, file_name):
@@ -89,19 +98,9 @@ class Lesson:
 		self.fname = name
 		print('שם הקובץ שונה.')
 
-	def set_rav(self, short_name):
-		self.rav = self.full_rav_name(short_name)
+	def set_rav(self, name):
+		self.rav = name
 		self.rav_dir = self.rav_directory(self.rav)
-
-	def full_rav_name(self, short_name):
-		while True:
-			for lst in config.RAV_NAMES:
-				if short_name in lst:
-					return lst[0]
-			other_rav = input("השם שכתבת אינו מופיע ברשימה. האם זה השם הנכון? (כן/כלום) ")
-			if other_rav == "כן":
-				return short_name
-			short_name = input("בחר שם חדש: ")
 
 	def rav_directory(self, rav):
 		if rav in config.rav_correct_dir:
@@ -111,35 +110,18 @@ class Lesson:
 		else:
 			return ''
 
-	def set_topic(self):
-		if os.path.isdir(self.rav_dir):
-			rav_directories = next(os.walk(self.rav_dir))[1]
-			rav_directories.append("אחר")
-			for i in range(len(rav_directories)):
-				if rav_directories[i] in config.topic_correct_dir.keys():
-					rav_directories[i] = config.topic_correct_dir[rav_directories[i]]
-
-			for count, item in enumerate(rav_directories, 1):
-				print(str(count) + ". " + item)
-			choose_num = input("בחר מספר: ")
-			while not choose_num.isnumeric() or int(choose_num) > len(rav_directories):
-				choose_num = input("בחר מספר: ")
-			if int(choose_num) < len(rav_directories):
-				self.topic = rav_directories[int(choose_num) - 1]
-			elif int(choose_num) == len(rav_directories):
-				enter_topic = input("נושא כללי: ")
-				self.topic = enter_topic
-		else:
-			enter_topic = input("נושא כללי: ")
-			self.topic = enter_topic
+	def set_topic(self, topic):
+		self.topic = topic
 
 	def set_day(self, day):
+		assert day in MONTH_DAYS
 		if len(day.split(' ')[-1]) == 1:
 			self.day = day + "'"
 		else:
 			self.day = day[:-1] + "''" + day[-1]
 
 	def set_month(self, month):
+		assert month in MONTHES
 		self.month = month
 
 	def set_title(self, title):
@@ -172,8 +154,15 @@ class Editor:
 		self.lessons = []
 		self.index = 0
 		self.exit = False
+		self.init_month()
 	
-	cur_lesson = property(lambda self: self.lessons[self.index])
+	cur_lesson: Lesson = property(lambda self: self.lessons[self.index])
+
+	def init_month(self):
+		self.month = input('מה החודש עכשיו? (אם משתנה נא להשאיר ריק) ')
+		while self.month not in MONTHES:
+			print("שם חודש לא תקין")
+			self.month = input('מה החודש עכשיו? (אם משתנה נא להשאיר ריק) ')
 	
 	def files_to_lessons(self):
 		for file in os.listdir(config.directory2):
@@ -218,13 +207,51 @@ class Editor:
 		self.cur_lesson.set_title(lesson_title)
 	
 	def edit_date(self):
-		pass
-
+		day = input("תאריך בחודש: ").replace("'", "").replace('"', '')
+		while day not in MONTH_DAYS:
+			print("יום בחודש לא תקין")
+			day = input("תאריך בחודש: ").replace("'", "").replace('"', '')
+		month = self.month
+		while not month or month not in MONTHES:
+			month = input("חודש: ")
+		
+		self.cur_lesson.set_day(day)
+		self.cur_lesson.set_month(month)
+		
 	def edit_rav(self):
-		pass
+		short_name = input('שם הרב: ')
+		while True:
+			for lst in config.RAV_NAMES:
+				if short_name in lst:
+					return self.cur_lesson.set_rav(lst[0])
+			other_rav = input("השם שכתבת אינו מופיע ברשימה. האם זה השם הנכון? (כן/כלום) ")
+			if other_rav == "כן":
+				return self.cur_lesson.set_rav(short_name)
+			short_name = input("בחר שם חדש: ")
 
 	def edit_topic(self):
-		pass
+		rav_dir = self.cur_lesson.rav_dir
+		if os.path.isdir(rav_dir):
+			rav_directories = next(os.walk(rav_dir))[1]
+			rav_directories.append("אחר")
+			for i in range(len(rav_directories)):
+				if rav_directories[i] in config.topic_correct_dir:
+					rav_directories[i] = config.topic_correct_dir[rav_directories[i]]
+
+			for count, item in enumerate(rav_directories, 1):
+				print(str(count) + ". " + item)
+			choose_num = input("בחר מספר: ")
+			while not choose_num.isnumeric() or int(choose_num) > len(rav_directories):
+				choose_num = input("בחר מספר: ")
+
+			if int(choose_num) < len(rav_directories):
+				self.cur_lesson.set_topic(rav_directories[int(choose_num) - 1])
+			else:
+				enter_topic = input("נושא כללי: ")
+				self.cur_lesson.set_topic(enter_topic)
+		else:
+			enter_topic = input("נושא כללי: ")
+			self.cur_lesson.set_topic(enter_topic)
 	
 	def edit_lesson(self):
 		self.cur_lesson.listen()
@@ -232,6 +259,12 @@ class Editor:
 			return
 		self.edit_title()
 		self.edit_date()
+		self.edit_rav()
+		self.edit_topic()
+		self.cur_lesson.set_fname()
+
+	def move_to_dirs(self):
+		pass
 
 	def run(self):
 		self.files_to_lessons()
@@ -240,9 +273,7 @@ class Editor:
 			if self.exit:
 				break
 			self.edit_lesson()
-			self.edit_rav()
-			self.edit_topic()
-			self.cur_lesson.set_fname()
+		self.move_to_dirs()
 
 
 def copy_to_edit(directory1):
@@ -251,7 +282,7 @@ def copy_to_edit(directory1):
 		shutil.copy2(os.path.join(directory1, file), 
 	       			os.path.join(config.directory2, file))
 		print('קובץ %s הועתק בהצלחה' % file)
-	print('הסתיימה העתקת הקבצים!')
+	print('הסתיימה העתקת הקבצים! עכשיו לעריכה:\n')
 
 
 def edit_names(month):
