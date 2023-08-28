@@ -17,8 +17,8 @@ ALEPHBET = ('א', 'ב', 'ג', 'ד', 'ה', 'ו', 'ז', 'ח', 'ט',
 
 class Lesson:
 	"""class to define one file of record."""
-	def __init__(self, dir, file_name):
-		self.dir = dir
+	def __init__(self, directory, file_name):
+		self.dir = directory
 		self.fname = file_name
 		self.index_letter = ''
 		self.rav = ''
@@ -87,7 +87,7 @@ class Lesson:
 		#TODO
 		pass
 
-	def change_name(self, name=None):
+	def set_fname(self, name=None):
 		if name is None:
 			name = self.name
 		os.rename(self.path, os.path.join(self.dir, name))
@@ -109,7 +109,7 @@ class Lesson:
 			short_name = input("בחר שם חדש: ")
 
 	def rav_directory(self, rav):
-		if rav in config.rav_correct_dir.keys():
+		if rav in config.rav_correct_dir:
 			return os.path.join(config.directory4, config.rav_correct_dir[rav])
 		elif os.path.isdir(os.path.join(config.directory4, rav)):
 			return os.path.join(config.directory4, rav)
@@ -170,6 +170,50 @@ class Lesson:
 
 
 
+class Editor:
+	"""class to implement the edit of file names, in the edit directory."""
+	def __init__(self, directory) -> None:
+		self.path = directory
+		self.lessons = []
+		self.index = 0
+		self.exit = False
+	
+	def files_to_lessons(self):
+		for file in os.listdir(config.directory2):
+			self.lessons.append(Lesson(self.path, file))
+	
+	def print_lessons(self):
+		print("שמות הקבצים בתיקיה כרגע:")
+		for i,les in enumerate(self.lessons):
+			print(str(i) + ". " + les.name)
+	
+	def choose_lesson(self):
+		self.print_lessons()
+		num = input("בחר מס' קובץ לעריכה: (להמשך לפי סדר הקש אנטר/ליציאה כתוב \"יציאה\") ")
+		if not num:
+			self.index += 1
+		elif num.isdigit() and int(num) < len(self.lessons):
+			self.index = int(num)
+		elif num.strip() == "יציאה":
+			self.exit = True
+		else:
+			print("טקסט לא תקין")
+			self.choose_lesson()
+	
+	def edit_lesson(self):
+		lesson = self.lessons[self.index]
+		#TODO
+
+	def run(self):
+		self.files_to_lessons()
+		while self.index < len(self.lessons):
+			self.choose_lesson()
+			if self.exit:
+				break
+			self.edit_lesson()
+
+
+
 def copy_to_edit(directory1):
 	print('מעתיק קבצים...')
 	for file in os.listdir(directory1):
@@ -220,7 +264,7 @@ def edit_names(month):
 		lesson.set_topic()
 
 		lesson.validations()
-		lesson.change_name()
+		lesson.set_fname()
 
 
 def cut_at_the_end():
@@ -239,7 +283,7 @@ def cut_at_the_end():
 		
 		# העברה לתיקיות של כל רב ורב אם אפשר ואם לא לתיקיית השנה
 		lesson.set_index()
-		lesson.change_name()
+		lesson.set_fname()
 		if os.path.isdir(os.path.join(lesson.rav_dir,lesson.topic)):
 			lesson.move_file(os.path.join(lesson.rav_dir,lesson.topic))
 		else:
