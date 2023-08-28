@@ -31,7 +31,6 @@ class Lesson:
 		self.fname = file_name
 		self.index_letter = ''
 		self.rav = ''
-		self.rav_dir = ''
 		self.topic = ''
 		self.day = ''
 		self.month = ''
@@ -46,6 +45,28 @@ class Lesson:
 	def name(self):
 		return ' - '.join([self.index_letter + self.rav, self.topic, 
 		     				self.date, self.title])
+	
+	@property
+	def rav_dir(self):
+		rav = self.rav
+		if rav in config.rav_correct_dir:
+			return os.path.join(config.directory4, config.rav_correct_dir[rav])
+		elif os.path.isdir(os.path.join(config.directory4, rav)):
+			return os.path.join(config.directory4, rav)
+		return ''
+	
+	@property
+	def topic_dir(self):
+		if not os.path.isdir(self.rav_dir):
+			return ""
+		sub_dir = self.topic
+		correct = config.topic_correct_dir
+		if self.topic in correct.values():
+			sub_dir = {i for i in correct if correct[i] == self.topic}[0]
+		full_path = os.path.join(self.rav_dir, sub_dir)
+		if os.path.isdir(full_path):
+			return full_path
+		return ""
 
 	def listen(self):
 		open_file = open(self.path, 'rb+')
@@ -100,15 +121,6 @@ class Lesson:
 
 	def set_rav(self, name):
 		self.rav = name
-		self.rav_dir = self.rav_directory(self.rav)
-
-	def rav_directory(self, rav):
-		if rav in config.rav_correct_dir:
-			return os.path.join(config.directory4, config.rav_correct_dir[rav])
-		elif os.path.isdir(os.path.join(config.directory4, rav)):
-			return os.path.join(config.directory4, rav)
-		else:
-			return ''
 
 	def set_topic(self, topic):
 		self.topic = topic
@@ -128,13 +140,13 @@ class Lesson:
 		self.title = title
 
 	def set_index(self):
-		if os.path.isdir(os.path.join(self.rav_dir, self.topic)):
+		if self.topic_dir:
 			# הוספת אות האינדקס בתחילת שם הקובץ
-			check_prev = os.listdir(os.path.join(self.rav_dir, self.topic))
+			check_prev = os.listdir(self.topic_dir)
 			check_prev.sort()
 			prev_index = check_prev[-1].split(" - ", 1)[0]
 			# TODO parse_name method
-			# prev_lesson = Lesson(os.path.join(lesson.rav_dir,lesson.topic), check_prev[-1])
+			# prev_lesson = Lesson(self.topic_dir, check_prev[-1])
 			# prev_lesson.parse_name()
 			# prev_index = prev_lesson.index_letter
 			self.index_letter = "א - "
@@ -143,7 +155,7 @@ class Lesson:
 					self.index_letter = ALEPHBET[counter + 1] + ' - '
 			if self.index_letter == "א - ":
 				print("\n\n\nשים לב! האות התחילית בתיקיית %s היא א'! תקן זאת בהקדם!\n\n\n\n" % \
-				os.path.join(self.rav_dir, self.topic))
+				self.topic_dir)
 
 
 
@@ -237,9 +249,9 @@ class Editor:
 			for i in range(len(rav_directories)):
 				if rav_directories[i] in config.topic_correct_dir:
 					rav_directories[i] = config.topic_correct_dir[rav_directories[i]]
-
 			for count, item in enumerate(rav_directories, 1):
 				print(str(count) + ". " + item)
+			
 			choose_num = input("בחר מספר: ")
 			while not choose_num.isnumeric() or int(choose_num) > len(rav_directories):
 				choose_num = input("בחר מספר: ")
@@ -264,7 +276,28 @@ class Editor:
 		self.cur_lesson.set_fname()
 
 	def move_to_dirs(self):
-		pass
+		to_move = input('כל השמות שונו, האם להעביר לתיקיות? (כן) ')
+		input("סגור את הנגן.")
+		while to_move != 'כן':
+			to_move = input('האם להעביר לתיקיות? (כן) ')
+		# פינוי תיקיית שיעורים מהשבוע האחרון
+		delete_old = input("האם לפנות את תיקיית שיעורים מהשבוע האחרון? (כן/כלום) ")
+		if delete_old == "כן":
+			for old_file in os.listdir(config.directory3):
+				os.remove(os.path.join(config.directory3, old_file))
+
+		for lesson in self.lessons:
+			lesson.copy_file(config.directory3)
+			# העברה לתיקיות של כל שיעור אם אפשר ואם לא לתיקיית השנה
+			lesson.set_index()
+			lesson.set_fname()
+			if lesson.topic_dir:
+				lesson.move_file(lesson.topic_dir)
+			else:
+				lesson.move_file(config.directory4)
+			print('הקובץ %s הועבר והועתק בהצלחה' % lesson.name)
+		print('כל הקבצים הועתקו בהצלחה!')
+
 
 	def run(self):
 		self.files_to_lessons()
