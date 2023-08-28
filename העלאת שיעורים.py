@@ -30,13 +30,8 @@ class Lesson:
 		self.title = ''
 		self.extension = os.path.splitext(self.path)[1]
 		
-	@property
-	def path(self):
-		return os.path.join(self.dir, self.fname)
-	
-	@property
-	def date(self):
-		return self.day + ' ' + self.month + ' ' + self.year
+	path = property(lambda self: os.path.join(self.dir, self.fname))
+	date = property(lambda self: self.day + ' ' + self.month + ' ' + self.year)
 	
 	@property
 	def name(self):
@@ -173,14 +168,16 @@ class Lesson:
 class Editor:
 	"""class to implement the edit of file names, in the edit directory."""
 	def __init__(self, directory) -> None:
-		self.path = directory
+		self.dir = directory
 		self.lessons = []
 		self.index = 0
 		self.exit = False
 	
+	cur_lesson = property(lambda self: self.lessons[self.index])
+	
 	def files_to_lessons(self):
 		for file in os.listdir(config.directory2):
-			self.lessons.append(Lesson(self.path, file))
+			self.lessons.append(Lesson(self.dir, file))
 	
 	def print_lessons(self):
 		print("שמות הקבצים בתיקיה כרגע:")
@@ -189,7 +186,7 @@ class Editor:
 	
 	def choose_lesson(self):
 		self.print_lessons()
-		num = input("בחר מס' קובץ לעריכה: (להמשך לפי סדר הקש אנטר/ליציאה כתוב \"יציאה\") ")
+		num = input("בחר מס' קובץ לעריכה: (להמשך לפי סדר הקש אנטר/לסיום העריכה כתוב \"יציאה\") ")
 		if not num:
 			self.index += 1
 		elif num.isdigit() and int(num) < len(self.lessons):
@@ -200,9 +197,41 @@ class Editor:
 			print("טקסט לא תקין")
 			self.choose_lesson()
 	
+	def is_valid_les(self):
+		# בדיקה אם למחוק את הקובץ או לדלג עליו
+		user_input = input('האם השיעור תקין? (לא/דלג/כלום) ') 
+		if user_input == "דלג":
+			return False
+		elif user_input == 'לא':
+			statinfo = os.stat(self.cur_lesson.path)
+			print('גודל הקובץ: ' + str(statinfo.st_size / 1000000) + 'Mb')
+			to_remove = input('האם למחוק אותו? (כן/כלום) ')
+			if to_remove == 'כן':
+				self.cur_lesson.delete_file()
+				return False
+		elif not user_input:
+			return True
+		return self.is_valid_les()
+	
+	def edit_title(self):
+		lesson_title = input("נושא השיעור: ")
+		self.cur_lesson.set_title(lesson_title)
+	
+	def edit_date(self):
+		pass
+
+	def edit_rav(self):
+		pass
+
+	def edit_topic(self):
+		pass
+	
 	def edit_lesson(self):
-		lesson = self.lessons[self.index]
-		#TODO
+		self.cur_lesson.listen()
+		if not self.is_valid_les():
+			return
+		self.edit_title()
+		self.edit_date()
 
 	def run(self):
 		self.files_to_lessons()
@@ -211,7 +240,9 @@ class Editor:
 			if self.exit:
 				break
 			self.edit_lesson()
-
+			self.edit_rav()
+			self.edit_topic()
+			self.cur_lesson.set_fname()
 
 
 def copy_to_edit(directory1):
