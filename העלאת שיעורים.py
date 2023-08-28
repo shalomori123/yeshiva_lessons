@@ -1,8 +1,7 @@
 import os
 import shutil
-from re import match
 
-from . import config
+import config
 
 ALEPHBET = ('א', 'ב', 'ג', 'ד', 'ה', 'ו', 'ז', 'ח', 'ט',
 'י', 'יא', 'יב', 'יג', 'יד', 'יהא', 'יוא', 'יז', 'יח', 'יט',
@@ -274,6 +273,7 @@ class Editor:
 		self.edit_rav()
 		self.edit_topic()
 		self.cur_lesson.set_fname()
+		self.cur_lesson.validations()
 
 	def move_to_dirs(self):
 		to_move = input('כל השמות שונו, האם להעביר לתיקיות? (כן) ')
@@ -298,7 +298,6 @@ class Editor:
 			print('הקובץ %s הועבר והועתק בהצלחה' % lesson.name)
 		print('כל הקבצים הועתקו בהצלחה!')
 
-
 	def run(self):
 		self.files_to_lessons()
 		while self.index < len(self.lessons):
@@ -309,6 +308,7 @@ class Editor:
 		self.move_to_dirs()
 
 
+
 def copy_to_edit(directory1):
 	print('מעתיק קבצים...')
 	for file in os.listdir(directory1):
@@ -316,75 +316,6 @@ def copy_to_edit(directory1):
 	       			os.path.join(config.directory2, file))
 		print('קובץ %s הועתק בהצלחה' % file)
 	print('הסתיימה העתקת הקבצים! עכשיו לעריכה:\n')
-
-
-def edit_names(month):
-	for file in os.listdir(config.directory2):
-		lesson = Lesson(config.directory2, file)
-		lesson.listen()
-		
-		# בדיקה אם למחוק את הקובץ או לדלג עליו
-		is_valid_file = input('האם השיעור תקין? (לא/דלג/כלום) ') 
-		if is_valid_file == "דלג":
-			continue
-		if is_valid_file == 'לא':
-			statinfo = os.stat(os.path.join(config.directory2,file))
-			print('גודל הקובץ: ' + str(statinfo.st_size / 1000000) + 'Mb')
-			to_remove = input('האם למחוק אותו? (כן/כלום) ')
-			if to_remove == 'כן':
-				lesson.delete_file()
-				continue
-			
-		lesson_title = input("נושא השיעור: ") # שינוי השם עצמו
-		lesson.set_title(lesson_title)
-
-		day_in_month = input("תאריך (היום בחודש בלבד בלי מרכאות, "
-		       				"אם לא הגדרת חודש בהתחלה הוסף אותו עכשיו): ")
-		split_day = day_in_month.split(' ')
-		if match('[א-ל][א-ט]?', split_day[0]):
-			fixed_day = split_day[0]
-			if len(split_day) > 1:
-				month = split_day[1]
-		elif match('[א-ל][א-ט]?', split_day[1]):
-			fixed_day = ' '.join(split_day[:-1])
-			if len(split_day) > 2:
-				month = split_day[-1]
-		else:
-			fixed_day = day_in_month
-		lesson.set_day(fixed_day)
-		lesson.set_month(month)
-
-		short_rav_name = input('שם הרב: ')
-		lesson.set_rav(short_rav_name)
-		lesson.set_topic()
-
-		lesson.validations()
-		lesson.set_fname()
-
-
-def cut_at_the_end():
-	to_move = input('כל השמות שונו, האם להעביר לתיקיות? (כן) ')
-	input("סגור את הנגן.")
-	while to_move != 'כן':
-		to_move = input('האם להעביר לתיקיות? (כן) ')
-	# פינוי תיקיית שיעורים מהשבוע האחרון
-	delete_old = input("האם לפנות את תיקיית שיעורים מהשבוע האחרון? (כן/כלום) ")
-	if delete_old == "כן":
-		for old_file in os.listdir(config.directory3):
-			os.remove(os.path.join(config.directory3, old_file))
-	for file in os.listdir(config.directory2):
-		lesson = Lesson(config.directory2, file)
-		lesson.copy_file(config.directory3)
-		
-		# העברה לתיקיות של כל רב ורב אם אפשר ואם לא לתיקיית השנה
-		lesson.set_index()
-		lesson.set_fname()
-		if os.path.isdir(os.path.join(lesson.rav_dir,lesson.topic)):
-			lesson.move_file(os.path.join(lesson.rav_dir,lesson.topic))
-		else:
-			lesson.move_file(config.directory4)
-		print('הקובץ %s הועבר והועתק בהצלחה' % file)
-	print('כל הקבצים הועתקו בהצלחה!')
 
 
 def delete_recorder(directory1):
@@ -416,10 +347,8 @@ def main():
 	if directory1:
 		copy_to_edit(directory1)
 	
-	current_month = input('מה החודש עכשיו? (אם משתנה נא להשאיר ריק) ')
-	
-	edit_names(current_month)
-	cut_at_the_end()
+	Editor(config.directory2).run()
+
 	if directory1:
 		delete_recorder(directory1)
 	print('\nפעולת התוכנה הסתיימה.\nאנא לא לשכוח לעבור לתיקיית שנת '
