@@ -321,7 +321,7 @@ def copy_to_edit(directory1):
 	for file in os.listdir(directory1):
 		shutil.copy2(os.path.join(directory1, file), 
 	       			os.path.join(config.directory2, file))
-		print('קובץ %s הועתק בהצלחה' % file)
+		print(f'קובץ {file} הועתק בהצלחה')
 	print('הסתיימה העתקת הקבצים! עכשיו לעריכה:\n')
 
 
