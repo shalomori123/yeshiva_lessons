@@ -43,8 +43,9 @@ class Lesson:
 	
 	@property
 	def name(self):
-		return ' - '.join([self.index_letter + self.rav, self.topic, 
-		     				self.date, self.title])
+		params = [self.index_letter] if self.index_letter else []
+		params += [self.rav, self.topic, self.date, self.title]
+		return ' - '.join(params)
 	
 	@property
 	def rav_dir(self):
@@ -87,7 +88,6 @@ class Lesson:
 		self.copy_file(to_dir)
 		self.delete_file()
 		self.dir = to_dir
-
 
 	def parse_name(self):
 		name_parts = self.fname.split('-')
@@ -153,11 +153,11 @@ class Lesson:
 		# prev_lesson = Lesson(self.topic_dir, check_prev[-1])
 		# prev_lesson.parse_name()
 		# prev_index = prev_lesson.index_letter
-		self.index_letter = "א - "
+		self.index_letter = "א"
 		for counter, letter in enumerate(ALEPHBET):
 			if letter == prev_index:
-				self.index_letter = ALEPHBET[counter + 1] + ' - '
-		if self.index_letter == "א - ":
+				self.index_letter = ALEPHBET[counter + 1]
+		if self.index_letter == "א":
 			print(f"\n\n\nשים לב! האות התחילית בתיקיית {self.topic_dir}"
 					" היא א'! תקן זאת בהקדם!\n\n\n\n")
 
