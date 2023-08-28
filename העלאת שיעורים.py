@@ -71,6 +71,7 @@ class Lesson:
 	def listen(self):
 		open_file = open(self.path, 'rb+')
 		print('האזן לשיעור')
+		print(self.fname)
 		# work only on windows
 		os.startfile(self.path)
 		open_file.close()
@@ -140,22 +141,25 @@ class Lesson:
 		self.title = title
 
 	def set_index(self):
-		if self.topic_dir:
-			# הוספת אות האינדקס בתחילת שם הקובץ
-			check_prev = os.listdir(self.topic_dir)
-			check_prev.sort()
+		if not self.topic_dir:
+			return
+		# הוספת אות האינדקס בתחילת שם הקובץ
+		check_prev = os.listdir(self.topic_dir)
+		check_prev.sort()
+		prev_index = ""
+		if len(check_prev):
 			prev_index = check_prev[-1].split(" - ", 1)[0]
-			# TODO parse_name method
-			# prev_lesson = Lesson(self.topic_dir, check_prev[-1])
-			# prev_lesson.parse_name()
-			# prev_index = prev_lesson.index_letter
-			self.index_letter = "א - "
-			for counter, letter in enumerate(ALEPHBET):
-				if letter == prev_index:
-					self.index_letter = ALEPHBET[counter + 1] + ' - '
-			if self.index_letter == "א - ":
-				print(f"\n\n\nשים לב! האות התחילית בתיקיית {self.topic_dir}"
-	  					" היא א'! תקן זאת בהקדם!\n\n\n\n")
+		# TODO parse_name method
+		# prev_lesson = Lesson(self.topic_dir, check_prev[-1])
+		# prev_lesson.parse_name()
+		# prev_index = prev_lesson.index_letter
+		self.index_letter = "א - "
+		for counter, letter in enumerate(ALEPHBET):
+			if letter == prev_index:
+				self.index_letter = ALEPHBET[counter + 1] + ' - '
+		if self.index_letter == "א - ":
+			print(f"\n\n\nשים לב! האות התחילית בתיקיית {self.topic_dir}"
+					" היא א'! תקן זאת בהקדם!\n\n\n\n")
 
 
 
@@ -164,7 +168,7 @@ class Editor:
 	def __init__(self, directory) -> None:
 		self.dir = directory
 		self.lessons = []
-		self.index = 0
+		self.index = -1
 		self.exit = False
 		self.init_month()
 	
@@ -181,15 +185,18 @@ class Editor:
 			self.lessons.append(Lesson(self.dir, file))
 	
 	def print_lessons(self):
+		print()
 		print("שמות הקבצים בתיקיה כרגע:")
 		for i,les in enumerate(self.lessons):
-			print(str(i) + ". " + les.name)
+			print(str(i) + ". " + les.fname)
 	
 	def choose_lesson(self):
 		self.print_lessons()
 		num = input("בחר מס' קובץ לעריכה: (להמשך לפי סדר הקש אנטר/לסיום העריכה כתוב \"יציאה\") ")
 		if not num:
 			self.index += 1
+			if self.index >= len(self.lessons):
+				self.exit = True
 		elif num.isdigit() and int(num) < len(self.lessons):
 			self.index = int(num)
 		elif num.strip() == "יציאה":
@@ -273,6 +280,7 @@ class Editor:
 		self.edit_date()
 		self.edit_rav()
 		self.edit_topic()
+		self.cur_lesson.set_index()
 		self.cur_lesson.set_fname()
 		self.cur_lesson.validations()
 
@@ -290,13 +298,11 @@ class Editor:
 		for lesson in self.lessons:
 			lesson.copy_file(config.directory3)
 			# העברה לתיקיות של כל שיעור אם אפשר ואם לא לתיקיית השנה
-			lesson.set_index()
-			lesson.set_fname()
 			if lesson.topic_dir:
 				lesson.move_file(lesson.topic_dir)
 			else:
 				lesson.move_file(config.directory4)
-			print('הקובץ %s הועבר והועתק בהצלחה' % lesson.name)
+			print(f'הקובץ {lesson.fname} הועבר והועתק בהצלחה')
 		print('כל הקבצים הועתקו בהצלחה!')
 
 	def run(self):
