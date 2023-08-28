@@ -1,6 +1,7 @@
 import os
 import shutil
 
+# import test_config as config
 import config
 
 ALEPHBET = ('א', 'ב', 'ג', 'ד', 'ה', 'ו', 'ז', 'ח', 'ט',
