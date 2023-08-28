@@ -153,8 +153,8 @@ class Lesson:
 				if letter == prev_index:
 					self.index_letter = ALEPHBET[counter + 1] + ' - '
 			if self.index_letter == "א - ":
-				print("\n\n\nשים לב! האות התחילית בתיקיית %s היא א'! תקן זאת בהקדם!\n\n\n\n" % \
-				self.topic_dir)
+				print(f"\n\n\nשים לב! האות התחילית בתיקיית {self.topic_dir}"
+	  					" היא א'! תקן זאת בהקדם!\n\n\n\n")
 
 
 
