@@ -176,7 +176,7 @@ class Editor:
 	@property
 	def lessons(self):
 		lst = []
-		for file in os.listdir(config.directory2):
+		for file in os.listdir(self.dir):
 			lst.append(Lesson(self.dir, file))
 		return lst
 
