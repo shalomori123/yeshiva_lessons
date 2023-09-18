@@ -25,10 +25,54 @@ MONTH_DAYS = ('א', 'ב', 'ג', 'ד', 'ה', 'ו', 'ז', 'ח', 'ט',
 
 
 class Lesson:
-	"""class to define one file of record."""
+	"""Class to define one file of a recording and its funtionality.
+	Using to relate to the file with characters of a lesson.
+	
+	Attributes:
+		File:
+		dir - directory of the file
+		fname - current file name. These two properties are provided by the user.
+		path - they both combined
+		extension - the extension of the file, for instance .mp3 or .wma
+
+		Content:
+		name - a standardized form to name lesson according to the next data
+		rav - the Rav (or any person) that taught the lesson
+		topic - main topic of the series of lessons
+		title - specific content of this lesson
+		date - full date according to the hebrew calander
+		day - day in month
+		month - hebrew month
+		year - hebrew year. directly from the config file
+		index_letter - numbering in ascending order of lessons in the topic directory
+
+		Helpers:
+		rav_dir - according to the rav field, find his final directory path
+		topic_dir - according to the topic field, find its directory path in the rav_dir
+	
+	Methods:
+		File operations:
+		listen() - open the file (works only in windows)
+		delete_file()
+		copy_file(to_dir)
+		move_file(to_dir)
+		parse_name() - to parse the attributes from the file name. doesn't working.
+		validations() - to validate the parsing. doesn't working.
+		set_fname(name=None) - rename the file to the given parameter or either to the self.name
+
+		Setters:
+		set_rav(rav)
+		set_topic(topic)
+		set_day(day) - also adding ' or " to the letters
+		set_month(month)
+		set_title(title)
+		set_index() - according to the files in topic_dir
+	"""
+
 	def __init__(self, directory, file_name):
 		self.dir = directory
 		self.fname = file_name
+		self.extension = os.path.splitext(self.path)[1]
 		self.index_letter = ''
 		self.rav = ''
 		self.topic = ''
@@ -36,7 +80,6 @@ class Lesson:
 		self.month = ''
 		self.year = config.CURRENT_YEAR
 		self.title = ''
-		self.extension = os.path.splitext(self.path)[1]
 		
 	path = property(lambda self: os.path.join(self.dir, self.fname))
 	date = property(lambda self: self.day + ' ' + self.month + ' ' + self.year)
@@ -91,11 +134,12 @@ class Lesson:
 
 	def parse_name(self):
 		name_parts = self.fname.split('-')
-		if len(name_parts) < 4 or len(name_parts) > 5:
+		name_parts = [p.strip() for p in name_parts]
+		if len(name_parts) not in (4, 5):
 			print(f'can\'t parse the filename "{self.fname}" '
 	 			'as a Lesson. because there are' + 
-				'5 or more' if len(name_parts) > 5 else '2 or less' 
-				+ 'seperations with " - " ')
+				'6 or more' if len(name_parts) > 5 else '3 or less' 
+				+ 'seperations with "-".')
 		elif len(name_parts) == 4:
 			self.rav = name_parts[0]
 			self.topic = name_parts[1]
@@ -107,7 +151,7 @@ class Lesson:
 			self.topic = name_parts[2]
 			self.day, self.month, self.year = name_parts[3].split()
 			self.title = name_parts[4]
-			self.validations()
+		self.validations()
 
 	def validations(self):
 		#TODO
@@ -120,8 +164,8 @@ class Lesson:
 		self.fname = name
 		print('שם הקובץ שונה.')
 
-	def set_rav(self, name):
-		self.rav = name
+	def set_rav(self, rav):
+		self.rav = rav
 
 	def set_topic(self, topic):
 		self.topic = topic
@@ -164,7 +208,37 @@ class Lesson:
 
 
 class Editor:
-	"""class to implement the edit of file names, in the edit directory."""
+	"""Class to implement the edit of file names and user interface, 
+	during the edit process in the edit field directory.
+	There are 2 steps in the editor: a loop on the lessons to edit their names,
+	and after moving them to the right places.
+	
+	Attributes:
+	dir - the directory to edit its file. provided by the user.
+	lessons - contains the files that in the dir, as "Lesson"s instances.
+	index - the index of the current lesson in the dir
+	cur_lesson - the current lesson that in editing process
+	month - if all the lessons belong to the same month, you can 
+			define it once at the beginning.
+	exit - if set as True the editor will end the editing
+
+	Methods:
+	run() - the main method to run the editor
+	edit_lesson() - the main method to edit one file, the cur_lesson
+	move_to_dirs() - handle the process that moving all 
+					the lessons to their new dirs.
+
+	Helper Methods:
+	init_month() - ask the user to define constant month
+	print_lessons() - print the names of the lessons
+	choose_lesson() - ask the user which lesson to edit
+	is_valid_les() - ask the user if the lesson is valid or to delete it
+	edit_title()
+	edit_date()
+	edit_rav()
+	edit_topic()
+	"""
+	
 	def __init__(self, directory) -> None:
 		self.dir = directory
 		self.lessons = []
