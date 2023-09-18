@@ -241,22 +241,24 @@ class Editor:
 	
 	def __init__(self, directory) -> None:
 		self.dir = directory
-		self.lessons = []
 		self.index = -1
 		self.exit = False
 		self.init_month()
 	
 	cur_lesson: Lesson = property(lambda self: self.lessons[self.index])
 
+	@property
+	def lessons(self):
+		lst = []
+		for file in os.listdir(self.dir):
+			lst.append(Lesson(self.dir, file))
+		return lst
+
 	def init_month(self):
 		self.month = input('מה החודש עכשיו? (אם משתנה נא להשאיר ריק) ')
 		while self.month not in MONTHES:
 			print("שם חודש לא תקין")
 			self.month = input('מה החודש עכשיו? (אם משתנה נא להשאיר ריק) ')
-	
-	def files_to_lessons(self):
-		for file in os.listdir(config.directory2):
-			self.lessons.append(Lesson(self.dir, file))
 	
 	def print_lessons(self):
 		print()
@@ -380,7 +382,6 @@ class Editor:
 		print('כל הקבצים הועתקו בהצלחה!')
 
 	def run(self):
-		self.files_to_lessons()
 		while self.index < len(self.lessons):
 			self.choose_lesson()
 			if self.exit:
