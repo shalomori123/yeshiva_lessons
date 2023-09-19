@@ -1,8 +1,8 @@
 import os
 import shutil
 
-import test_config as config
-#import config
+# import test_config as config
+import config
 
 ALEPHBET = ('א', 'ב', 'ג', 'ד', 'ה', 'ו', 'ז', 'ח', 'ט',
 'י', 'יא', 'יב', 'יג', 'יד', 'יהא', 'יוא', 'יז', 'יח', 'יט',
@@ -117,7 +117,7 @@ class Lesson:
 		print('האזן לשיעור')
 		print(self.fname)
 		# work only on windows
-		#os.startfile(self.path)
+		os.startfile(self.path)
 		open_file.close()
 
 	def delete_file(self):
