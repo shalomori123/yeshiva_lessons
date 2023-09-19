@@ -1,8 +1,8 @@
 import os
 import shutil
 
-# import test_config as config
-import config
+import test_config as config
+#import config
 
 ALEPHBET = ('א', 'ב', 'ג', 'ד', 'ה', 'ו', 'ז', 'ח', 'ט',
 'י', 'יא', 'יב', 'יג', 'יד', 'יהא', 'יוא', 'יז', 'יח', 'יט',
@@ -117,7 +117,7 @@ class Lesson:
 		print('האזן לשיעור')
 		print(self.fname)
 		# work only on windows
-		os.startfile(self.path)
+		#os.startfile(self.path)
 		open_file.close()
 
 	def delete_file(self):
@@ -241,18 +241,17 @@ class Editor:
 	
 	def __init__(self, directory) -> None:
 		self.dir = directory
+		self.lessons = []
 		self.index = -1
 		self.exit = False
 		self.init_month()
 	
 	cur_lesson: Lesson = property(lambda self: self.lessons[self.index])
 
-	@property
-	def lessons(self):
-		lst = []
-		for file in os.listdir(self.dir):
-			lst.append(Lesson(self.dir, file))
-		return lst
+	def files_to_lessons(self):
+		self.lessons = []
+		for file in os.listdir(config.directory2):
+			self.lessons.append(Lesson(self.dir, file))
 
 	def init_month(self):
 		self.month = input('מה החודש עכשיו? (אם משתנה נא להשאיר ריק) ')
@@ -383,6 +382,7 @@ class Editor:
 
 	def run(self):
 		while self.index < len(self.lessons):
+			self.files_to_lessons()
 			self.choose_lesson()
 			if self.exit:
 				break
