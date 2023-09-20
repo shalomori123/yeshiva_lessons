@@ -88,7 +88,7 @@ class Lesson:
 	def name(self):
 		params = [self.index_letter] if self.index_letter else []
 		params += [self.rav, self.topic, self.date, self.title]
-		return ' - '.join(params)
+		return ' - '.join(params) + self.extension
 	
 	@property
 	def rav_dir(self):
