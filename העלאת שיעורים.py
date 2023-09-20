@@ -397,8 +397,8 @@ class Editor:
 		print('כל הקבצים הועתקו בהצלחה!')
 
 	def run(self):
+		self.files_to_lessons()
 		while self.index < len(self.lessons):
-			self.files_to_lessons()
 			self.choose_lesson()
 			if self.exit:
 				break
