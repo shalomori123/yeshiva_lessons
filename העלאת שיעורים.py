@@ -215,7 +215,7 @@ class Editor:
 	
 	Attributes:
 	dir - the directory to edit its file. provided by the user.
-	lessons - contains the files that in the dir, as "Lesson"s instances.
+	lessons - contains the files that in the dir, as "Lesson" instances.
 	index - the index of the current lesson in the dir
 	cur_lesson - the current lesson that in editing process
 	month - if all the lessons belong to the same month, you can 
@@ -229,10 +229,12 @@ class Editor:
 					the lessons to their new dirs.
 
 	Helper Methods:
+	files_to_lessons() - update the lessons according to the file names
 	init_month() - ask the user to define constant month
 	print_lessons() - print the names of the lessons
 	choose_lesson() - ask the user which lesson to edit
 	is_valid_les() - ask the user if the lesson is valid or to delete it
+	skip_move() - ask the user if there are files that shouldn't be moved
 	edit_title()
 	edit_date()
 	edit_rav()
@@ -262,7 +264,7 @@ class Editor:
 	def print_lessons(self):
 		print()
 		print("שמות הקבצים בתיקיה כרגע:")
-		for i,les in enumerate(self.lessons):
+		for i,les in enumerate(self.lessons, 1):
 			print(str(i) + ". " + les.fname)
 	
 	def choose_lesson(self):
@@ -272,8 +274,8 @@ class Editor:
 			self.index += 1
 			if self.index >= len(self.lessons):
 				self.exit = True
-		elif num.isdigit() and int(num) < len(self.lessons):
-			self.index = int(num)
+		elif num.isdigit() and int(num) <= len(self.lessons):
+			self.index = int(num)-1
 		elif num.strip() == "יציאה":
 			self.exit = True
 		else:
@@ -358,6 +360,17 @@ class Editor:
 		self.cur_lesson.set_index()
 		self.cur_lesson.set_fname()
 		self.cur_lesson.validations()
+	
+	def skip_move(self):
+		self.print_lessons()
+		while True:
+			to_skip = input("אם יש קבצים לא להעברה כתוב את מספריהם (רווח פשוט ביניהם): ")
+			if not to_skip:
+				return []
+			elif to_skip.replace(" ", "").isdigit():
+				lst = to_skip.split(" ")
+				return [int(i)-1 for i in lst]
+			print("טקסט לא תקין.")
 
 	def move_to_dirs(self):
 		to_move = input('כל השמות שונו, האם להעביר לתיקיות? (כן) ')
@@ -370,7 +383,10 @@ class Editor:
 			for old_file in os.listdir(config.directory3):
 				os.remove(os.path.join(config.directory3, old_file))
 
-		for lesson in self.lessons:
+		to_skip = self.skip_move()
+		for i, lesson in enumerate(self.lessons):
+			if i in to_skip:
+				continue
 			lesson.copy_file(config.directory3)
 			# העברה לתיקיות של כל שיעור אם אפשר ואם לא לתיקיית השנה
 			if lesson.topic_dir:
