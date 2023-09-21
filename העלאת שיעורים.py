@@ -1,8 +1,8 @@
 import os
 import shutil
 
-# import test_config as config
-import config
+import test_config as config
+# import config
 
 ALEPHBET = ('א', 'ב', 'ג', 'ד', 'ה', 'ו', 'ז', 'ח', 'ט',
 'י', 'יא', 'יב', 'יג', 'יד', 'יהא', 'יוא', 'יז', 'יח', 'יט',
@@ -119,7 +119,7 @@ class Lesson:
 		print('האזן לשיעור')
 		print(self.fname)
 		# work only on windows
-		os.startfile(self.path)
+		# os.startfile(self.path)
 
 	def delete_file(self):
 		if not self.is_exists():
@@ -261,6 +261,12 @@ class Editor:
 	
 	cur_lesson: Lesson = property(lambda self: self.lessons[self.index])
 
+	def init_month(self):
+		self.month = input('מה החודש עכשיו? (אם משתנה נא להשאיר ריק) ')
+		while self.month not in MONTHES:
+			print("שם חודש לא תקין")
+			self.month = input('מה החודש עכשיו? (אם משתנה נא להשאיר ריק) ')
+
 	def files_to_lessons(self):
 		self.lessons = []
 		for file in os.listdir(config.directory2):
@@ -272,12 +278,6 @@ class Editor:
 			if les.is_exists():
 				lst.append(les)
 		self.lessons = lst
-
-	def init_month(self):
-		self.month = input('מה החודש עכשיו? (אם משתנה נא להשאיר ריק) ')
-		while self.month not in MONTHES:
-			print("שם חודש לא תקין")
-			self.month = input('מה החודש עכשיו? (אם משתנה נא להשאיר ריק) ')
 	
 	def print_lessons(self):
 		print()
@@ -311,6 +311,7 @@ class Editor:
 			to_remove = input('האם למחוק אותו? (כן/כלום) ')
 			if to_remove == 'כן':
 				self.cur_lesson.delete_file()
+				self.index -= 1
 				return False
 		elif not user_input:
 			return True
@@ -384,12 +385,14 @@ class Editor:
 		false = move only the list"""
 		self.print_lessons()
 		option = input("בחר אפשרות:\n1. העתק הכל.\n2. בחירת קבצים לדילוג.\n"
-				 "3. בחירת קבצים להעברה.\nבחירתך: ")
-		if option not in ("1", "2", "3"):
+				 "3. בחירת קבצים להעברה.\n4. לדלג על העברת הקבצים.\nבחירתך: ")
+		if option not in ("1", "2", "3", "4"):
 			print("טקסט לא תקין.")
 			return self.skip_move()
 		if option == "1":
 			return ([], True)
+		if option == "4":
+			return ([], False)
 		while option == "2":
 			to_skip = input("קבצים לדילוג (רווח פשוט ביניהם): ")
 			if not to_skip:
@@ -408,10 +411,8 @@ class Editor:
 			print("טקסט לא תקין.")
 
 	def move_to_dirs(self):
-		to_move = input('כל השמות שונו, האם להעביר לתיקיות? (כן) ')
+		print("עוברים לשלב העברת הקבצים.")
 		input("סגור את הנגן.")
-		while to_move != 'כן':
-			to_move = input('האם להעביר לתיקיות? (כן) ')
 		# פינוי תיקיית שיעורים מהשבוע האחרון
 		delete_old = input("האם לפנות את תיקיית שיעורים מהשבוע האחרון? (כן/כלום) ")
 		if delete_old == "כן":
