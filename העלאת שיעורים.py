@@ -56,6 +56,7 @@ class Lesson:
 		delete_file()
 		copy_file(to_dir)
 		move_file(to_dir)
+		is_exists() - validate existence of the file
 		parse_name() - to parse the attributes from the file name. doesn't working.
 		validations() - to validate the parsing. doesn't working.
 		set_fname(name=None) - rename the file to the given parameter or either to the self.name
@@ -113,24 +114,33 @@ class Lesson:
 		return ""
 
 	def listen(self):
-		open_file = open(self.path, 'rb+')
+		if not self.is_exists():
+			return print("לא יכול לבצע את הפעולה מפני שהקובץ לא קיים.")
 		print('האזן לשיעור')
 		print(self.fname)
 		# work only on windows
 		os.startfile(self.path)
-		open_file.close()
 
 	def delete_file(self):
+		if not self.is_exists():
+			return print("לא יכול לבצע את הפעולה מפני שהקובץ לא קיים.")
 		os.remove(self.path)
 		print('הקובץ נמחק.')
 
 	def copy_file(self, to_dir):
+		if not self.is_exists():
+			return print("לא יכול לבצע את הפעולה מפני שהקובץ לא קיים.")
 		shutil.copy2(self.path, os.path.join(to_dir, self.fname))
 
 	def move_file(self, to_dir):
+		if not self.is_exists():
+			return print("לא יכול לבצע את הפעולה מפני שהקובץ לא קיים.")
 		self.copy_file(to_dir)
 		self.delete_file()
 		self.dir = to_dir
+	
+	def is_exists(self):
+		return os.path.exists(self.path)
 
 	def parse_name(self):
 		name_parts = self.fname.split('-')
@@ -230,6 +240,7 @@ class Editor:
 
 	Helper Methods:
 	files_to_lessons() - update the lessons according to the file names
+	validate_existence() - update lessons list if files was deleted
 	init_month() - ask the user to define constant month
 	print_lessons() - print the names of the lessons
 	choose_lesson() - ask the user which lesson to edit
@@ -254,6 +265,13 @@ class Editor:
 		self.lessons = []
 		for file in os.listdir(config.directory2):
 			self.lessons.append(Lesson(self.dir, file))
+	
+	def validate_existence(self):
+		lst = []
+		for les in self.lessons:
+			if les.is_exists():
+				lst.append(les)
+		self.lessons = lst
 
 	def init_month(self):
 		self.month = input('מה החודש עכשיו? (אם משתנה נא להשאיר ריק) ')
@@ -362,14 +380,31 @@ class Editor:
 		self.cur_lesson.validations()
 	
 	def skip_move(self):
+		"""return tuple that contain list and bool, true = skip the list,
+		false = move only the list"""
 		self.print_lessons()
-		while True:
-			to_skip = input("אם יש קבצים לא להעברה כתוב את מספריהם (רווח פשוט ביניהם): ")
+		option = input("בחר אפשרות:\n1. העתק הכל.\n2. בחירת קבצים לדילוג.\n"
+				 "3. בחירת קבצים להעברה.\nבחירתך: ")
+		if option not in ("1", "2", "3"):
+			print("טקסט לא תקין.")
+			return self.skip_move()
+		if option == "1":
+			return ([], True)
+		while option == "2":
+			to_skip = input("קבצים לדילוג (רווח פשוט ביניהם): ")
 			if not to_skip:
-				return []
+				return ([], True)
 			elif to_skip.replace(" ", "").isdigit():
 				lst = to_skip.split(" ")
-				return [int(i)-1 for i in lst]
+				return ([int(i)-1 for i in lst], True)
+			print("טקסט לא תקין.")
+		while option == "3":
+			to_move = input("קבצים להעברה (רווח פשוט ביניהם): ")
+			if not to_move:
+				return ([], True)
+			elif to_move.replace(" ", "").isdigit():
+				lst = to_move.split(" ")
+				return ([int(i)-1 for i in lst], False)
 			print("טקסט לא תקין.")
 
 	def move_to_dirs(self):
@@ -385,7 +420,7 @@ class Editor:
 
 		to_skip = self.skip_move()
 		for i, lesson in enumerate(self.lessons):
-			if i in to_skip:
+			if (to_skip[1] and i in to_skip[0]) or (not to_skip[1] and i not in to_skip[0]):
 				continue
 			lesson.copy_file(config.directory3)
 			# העברה לתיקיות של כל שיעור אם אפשר ואם לא לתיקיית השנה
@@ -399,6 +434,7 @@ class Editor:
 	def run(self):
 		self.files_to_lessons()
 		while self.index < len(self.lessons):
+			self.validate_existence()
 			self.choose_lesson()
 			if self.exit:
 				break
@@ -447,8 +483,8 @@ def main():
 	
 	Editor(config.directory2).run()
 
-	if directory1:
-		delete_recorder(directory1)
+	# if directory1:
+		# delete_recorder(directory1)
 	print('\nפעולת התוכנה הסתיימה.\nאנא לא לשכוח לעבור לתיקיית שנת '
        f'{config.CURRENT_YEAR} כדי לסיים את המלאכה.\nאשריך וטוב לך ובהצלחה במשמר!')
 
