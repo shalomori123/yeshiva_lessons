@@ -89,7 +89,7 @@ class Lesson:
 	def name(self):
 		params = [self.index_letter] if self.index_letter else []
 		params += [self.rav, self.topic, self.date, self.title]
-		return ' - '.join(params) + self.extension
+		return ' - '.join(params)
 	
 	@property
 	def rav_dir(self):
@@ -169,7 +169,7 @@ class Lesson:
 
 	def set_fname(self, name=None):
 		if name is None:
-			name = self.name
+			name = self.name + self.extension
 		os.rename(self.path, os.path.join(self.dir, name))
 		self.fname = name
 		print('שם הקובץ שונה.')
@@ -199,21 +199,24 @@ class Lesson:
 			return
 		# הוספת אות האינדקס בתחילת שם הקובץ
 		check_prev = os.listdir(self.topic_dir)
+		if not len(check_prev):
+			self.index_letter = "א"
+			return
 		check_prev.sort()
-		prev_index = ""
-		if len(check_prev):
-			prev_index = check_prev[-1].split(" - ", 1)[0]
+		prev_index = check_prev[-1].split(" - ", 1)[0]
 		# TODO parse_name method
 		# prev_lesson = Lesson(self.topic_dir, check_prev[-1])
 		# prev_lesson.parse_name()
 		# prev_index = prev_lesson.index_letter
+
 		self.index_letter = "א"
 		for counter, letter in enumerate(ALEPHBET):
 			if letter == prev_index:
 				self.index_letter = ALEPHBET[counter + 1]
-		if self.index_letter == "א":
-			print(f"\n\n\nשים לב! האות התחילית בתיקיית {self.topic_dir}"
-					" היא א'! תקן זאת בהקדם!\n\n\n\n")
+				break
+		else:
+			print(f"\n\n\nשים לב! חסרים אינדקסים קודמים בתיקיית {self.topic_dir}"
+					"! תקן זאת בהקדם!\n\n\n\n")
 
 
 
@@ -376,7 +379,6 @@ class Editor:
 		self.edit_date()
 		self.edit_rav()
 		self.edit_topic()
-		self.cur_lesson.set_index()
 		self.cur_lesson.set_fname()
 		self.cur_lesson.validations()
 	
@@ -426,6 +428,8 @@ class Editor:
 			lesson.copy_file(config.directory3)
 			# העברה לתיקיות של כל שיעור אם אפשר ואם לא לתיקיית השנה
 			if lesson.topic_dir:
+				lesson.set_index()
+				lesson.set_fname()
 				lesson.move_file(lesson.topic_dir)
 			else:
 				lesson.move_file(config.directory4)
