@@ -167,7 +167,7 @@ class Lesson:
 		#TODO
 		pass
 
-	def set_fname(self, name=None) -> None:
+	def set_fname(self, name: str|None = None) -> None:
 		if name is None:
 			name = self.name + self.extension
 		os.rename(self.path, os.path.join(self.dir, name))
