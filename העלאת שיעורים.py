@@ -70,29 +70,29 @@ class Lesson:
 		set_index() - according to the files in topic_dir
 	"""
 
-	def __init__(self, directory, file_name):
-		self.dir = directory
-		self.fname = file_name
-		self.extension = os.path.splitext(self.path)[1]
-		self.index_letter = ''
-		self.rav = ''
-		self.topic = ''
-		self.day = ''
-		self.month = ''
-		self.year = config.CURRENT_YEAR
-		self.title = ''
+	def __init__(self, directory: str, file_name: str) -> None:
+		self.dir: str = directory
+		self.fname: str = file_name
+		self.extension: str = os.path.splitext(self.path)[1]
+		self.index_letter: str = ''
+		self.rav: str = ''
+		self.topic: str = ''
+		self.day: str = ''
+		self.month: str = ''
+		self.year: str = config.CURRENT_YEAR
+		self.title: str = ''
 		
-	path = property(lambda self: os.path.join(self.dir, self.fname))
-	date = property(lambda self: self.day + ' ' + self.month + ' ' + self.year)
+	path: str = property(lambda self: os.path.join(self.dir, self.fname))
+	date: str = property(lambda self: self.day + ' ' + self.month + ' ' + self.year)
 	
 	@property
-	def name(self):
+	def name(self) -> str:
 		params = [self.index_letter] if self.index_letter else []
 		params += [self.rav, self.topic, self.date, self.title]
 		return ' - '.join(params)
 	
 	@property
-	def rav_dir(self):
+	def rav_dir(self) -> str:
 		rav = self.rav
 		if rav in config.rav_correct_dir:
 			return os.path.join(config.directory4, config.rav_correct_dir[rav])
@@ -101,7 +101,7 @@ class Lesson:
 		return ''
 	
 	@property
-	def topic_dir(self):
+	def topic_dir(self) -> str:
 		if not os.path.isdir(self.rav_dir):
 			return ""
 		sub_dir = self.topic
@@ -113,7 +113,7 @@ class Lesson:
 			return full_path
 		return ""
 
-	def listen(self):
+	def listen(self) -> None:
 		if not self.is_exists():
 			return print("לא יכול לבצע את הפעולה מפני שהקובץ לא קיים.")
 		print('האזן לשיעור')
@@ -121,28 +121,28 @@ class Lesson:
 		# work only on windows
 		os.startfile(self.path)
 
-	def delete_file(self):
+	def delete_file(self) -> None:
 		if not self.is_exists():
 			return print("לא יכול לבצע את הפעולה מפני שהקובץ לא קיים.")
 		os.remove(self.path)
 		print('הקובץ נמחק.')
 
-	def copy_file(self, to_dir):
+	def copy_file(self, to_dir: str) -> None:
 		if not self.is_exists():
 			return print("לא יכול לבצע את הפעולה מפני שהקובץ לא קיים.")
 		shutil.copy2(self.path, os.path.join(to_dir, self.fname))
 
-	def move_file(self, to_dir):
+	def move_file(self, to_dir: str) -> None:
 		if not self.is_exists():
 			return print("לא יכול לבצע את הפעולה מפני שהקובץ לא קיים.")
 		self.copy_file(to_dir)
 		self.delete_file()
 		self.dir = to_dir
 	
-	def is_exists(self):
+	def is_exists(self) -> bool:
 		return os.path.exists(self.path)
 
-	def parse_name(self):
+	def parse_name(self) -> None:
 		name_parts = self.fname.split('-')
 		name_parts = [p.strip() for p in name_parts]
 		if len(name_parts) not in (4, 5):
@@ -163,38 +163,38 @@ class Lesson:
 			self.title = name_parts[4]
 		self.validations()
 
-	def validations(self):
+	def validations(self) -> None:
 		#TODO
 		pass
 
-	def set_fname(self, name=None):
+	def set_fname(self, name=None) -> None:
 		if name is None:
 			name = self.name + self.extension
 		os.rename(self.path, os.path.join(self.dir, name))
 		self.fname = name
 		print('שם הקובץ שונה.')
 
-	def set_rav(self, rav):
+	def set_rav(self, rav: str) -> None:
 		self.rav = rav
 
-	def set_topic(self, topic):
+	def set_topic(self, topic: str) -> None:
 		self.topic = topic
 
-	def set_day(self, day):
+	def set_day(self, day: str) -> None:
 		assert day in MONTH_DAYS
 		if len(day.split(' ')[-1]) == 1:
 			self.day = day + "'"
 		else:
 			self.day = day[:-1] + "''" + day[-1]
 
-	def set_month(self, month):
+	def set_month(self, month: str) -> None:
 		assert month in MONTHES
 		self.month = month
 
-	def set_title(self, title):
+	def set_title(self, title: str) -> None:
 		self.title = title
 
-	def set_index(self):
+	def set_index(self) -> None:
 		if not self.topic_dir:
 			return
 		# הוספת אות האינדקס בתחילת שם הקובץ
@@ -255,40 +255,40 @@ class Editor:
 	edit_topic()
 	"""
 	
-	def __init__(self, directory) -> None:
-		self.dir = directory
-		self.lessons = []
-		self.index = -1
-		self.exit = False
+	def __init__(self, directory: str) -> None:
+		self.dir: str = directory
+		self.lessons: list[Lesson] = []
+		self.index: int = -1
+		self.exit: bool = False
 		self.init_month()
 	
 	cur_lesson: Lesson = property(lambda self: self.lessons[self.index])
 
-	def init_month(self):
+	def init_month(self) -> None:
 		self.month = input('מה החודש עכשיו? (אם משתנה נא להשאיר ריק) ')
 		while self.month not in MONTHES:
 			print("שם חודש לא תקין")
 			self.month = input('מה החודש עכשיו? (אם משתנה נא להשאיר ריק) ')
 
-	def files_to_lessons(self):
+	def files_to_lessons(self) -> None:
 		self.lessons = []
 		for file in os.listdir(config.directory2):
 			self.lessons.append(Lesson(self.dir, file))
 	
-	def validate_existence(self):
+	def validate_existence(self) -> None:
 		lst = []
 		for les in self.lessons:
 			if les.is_exists():
 				lst.append(les)
 		self.lessons = lst
 	
-	def print_lessons(self):
+	def print_lessons(self) -> None:
 		print()
 		print("שמות הקבצים בתיקיה כרגע:")
 		for i,les in enumerate(self.lessons, 1):
 			print(str(i) + ". " + les.fname)
 	
-	def choose_lesson(self):
+	def choose_lesson(self) -> None:
 		self.print_lessons()
 		num = input("בחר מס' קובץ לעריכה: (להמשך לפי סדר הקש אנטר/לסיום העריכה כתוב \"יציאה\") ")
 		if not num:
@@ -303,7 +303,7 @@ class Editor:
 			print("טקסט לא תקין")
 			self.choose_lesson()
 	
-	def is_valid_les(self):
+	def is_valid_les(self) -> bool:
 		# בדיקה אם למחוק את הקובץ או לדלג עליו
 		user_input = input('האם השיעור תקין? (לא/דלג/כלום) ') 
 		if user_input == "דלג":
@@ -320,11 +320,11 @@ class Editor:
 			return True
 		return self.is_valid_les()
 	
-	def edit_title(self):
+	def edit_title(self) -> None:
 		lesson_title = input("נושא השיעור: ")
 		self.cur_lesson.set_title(lesson_title)
 	
-	def edit_date(self):
+	def edit_date(self) -> None:
 		day = input("תאריך בחודש: ").replace("'", "").replace('"', '')
 		while day not in MONTH_DAYS:
 			print("יום בחודש לא תקין")
@@ -336,7 +336,7 @@ class Editor:
 		self.cur_lesson.set_day(day)
 		self.cur_lesson.set_month(month)
 		
-	def edit_rav(self):
+	def edit_rav(self) -> None:
 		short_name = input('שם הרב: ')
 		while True:
 			for lst in config.RAV_NAMES:
@@ -347,7 +347,7 @@ class Editor:
 				return self.cur_lesson.set_rav(short_name)
 			short_name = input("בחר שם חדש: ")
 
-	def edit_topic(self):
+	def edit_topic(self) -> None:
 		rav_dir = self.cur_lesson.rav_dir
 		if os.path.isdir(rav_dir):
 			rav_directories = next(os.walk(rav_dir))[1]
@@ -371,7 +371,7 @@ class Editor:
 			enter_topic = input("נושא כללי: ")
 			self.cur_lesson.set_topic(enter_topic)
 	
-	def edit_lesson(self):
+	def edit_lesson(self) -> None:
 		self.cur_lesson.listen()
 		if not self.is_valid_les():
 			return
@@ -382,7 +382,7 @@ class Editor:
 		self.cur_lesson.set_fname()
 		self.cur_lesson.validations()
 	
-	def skip_move(self):
+	def skip_move(self) -> tuple[list, bool]:
 		"""return tuple that contain list and bool, true = skip the list,
 		false = move only the list"""
 		self.print_lessons()
@@ -412,7 +412,7 @@ class Editor:
 				return ([int(i)-1 for i in lst], False)
 			print("טקסט לא תקין.")
 
-	def move_to_dirs(self):
+	def move_to_dirs(self) -> None:
 		print("עוברים לשלב העברת הקבצים.")
 		input("סגור את הנגן.")
 		# פינוי תיקיית שיעורים מהשבוע האחרון
@@ -436,7 +436,7 @@ class Editor:
 			print(f'הקובץ {lesson.fname} הועבר והועתק בהצלחה')
 		print('פעולת ההעברה הסתיימה בהצלחה!')
 
-	def run(self):
+	def run(self) -> None:
 		self.files_to_lessons()
 		while self.index < len(self.lessons):
 			self.validate_existence()
@@ -448,7 +448,18 @@ class Editor:
 
 
 
-def copy_to_edit(directory1):
+def define_recorder() -> str:
+	recorder = input("מספר מקלט: ")
+	if recorder in config.recorders_path.keys():
+		return config.recorders_path[recorder]
+	elif recorder == "":
+		dont_copy = input("האם לדלג על העתקה מהמקלט? (כן/כלום) ")
+		if dont_copy == "כן":
+			return ""
+	return define_recorder()
+
+
+def copy_to_edit(directory1: str) -> None:
 	print('מעתיק קבצים...')
 	for file in os.listdir(directory1):
 		shutil.copy2(os.path.join(directory1, file), 
@@ -457,32 +468,20 @@ def copy_to_edit(directory1):
 	print('הסתיימה העתקת הקבצים! עכשיו לעריכה:\n')
 
 
-def delete_recorder(directory1):
+def delete_recorder(directory1: str) -> None:
 	to_delete = input("האם לרוקן את המקלט? (כן/כלום) ")
 	if to_delete == "כן":
 		for old_file in os.listdir(directory1):
 			os.remove(os.path.join(directory1, old_file))
 
 
-def define_recorder():
-	recorder = input("מספר מקלט: ")
-	if recorder in config.recorders_path.keys():
-		return config.recorders_path[recorder]
-	elif recorder == "":
-		dont_copy = input("האם לדלג על העתקה מהמקלט? (כן/כלום) ")
-		if dont_copy == "כן":
-			return ""
-
-
-def main():
+def main() -> None:
 	print('ברוך הבא לתוכנת העלאת השיעורים!\n אשריך!')
 	to_start = input('כדי להתחיל כתוב "התחל": ')
 	while to_start != 'התחל':
 		to_start = input('כדי להתחיל כתוב "התחל": ')
 
 	directory1 = define_recorder() #המיקום של הקבצים במקלט
-	while directory1 is None:
-		directory1 = define_recorder()
 	if directory1:
 		copy_to_edit(directory1)
 	
