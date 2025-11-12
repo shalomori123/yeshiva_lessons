@@ -15,8 +15,10 @@ ALEPHBET = ('א', 'ב', 'ג', 'ד', 'ה', 'ו', 'ז', 'ח', 'ט',
 'פ', 'פא', 'פב', 'פג', 'פד', 'פה', 'פו', 'פז', 'פח', 'פט',
 'צ', 'צא', 'צב', 'צג', 'צד', 'צה', 'צו', 'צז', 'צח', 'צט')
 
-MONTHES = ("תשרי", "חשוון", "כסלו", "טבת", "שבט", "אדר", "ניסן", "אייר", "סיוון", "תמוז", "אב", "אלול",
-	   "חשון", "מרחשוון", "כסליו", "אדר א", "אדר א'", "אדר ב", "אדר ב'", "סיון", "מנחם אב", "")
+MONTHES = ("תשרי", "חשוון", "כסלו", "טבת", "שבט", "אדר", 
+		   "ניסן", "אייר", "סיוון", "תמוז", "אב", "אלול",
+		   "חשון", "מרחשוון", "כסליו", "אדר א", "אדר א'", 
+		   "אדר ב", "אדר ב'", "סיון", "מנחם אב")
 
 MONTH_DAYS = ('א', 'ב', 'ג', 'ד', 'ה', 'ו', 'ז', 'ח', 'ט',
 'י', 'יא', 'יב', 'יג', 'יד', 'טו', 'טז', 'יז', 'יח', 'יט',
@@ -25,49 +27,58 @@ MONTH_DAYS = ('א', 'ב', 'ג', 'ד', 'ה', 'ו', 'ז', 'ח', 'ט',
 
 
 class Lesson:
-	"""Class to define one file of a recording and its funtionality.
-	Using to relate to the file with characters of a lesson.
+	"""Class to define one file of a recording and its functionality.
+	Using to relate to the file with characteristics of a lesson.
 	
-	Attributes:
-		File:
-		dir - directory of the file
-		fname - current file name. These two properties are provided by the user.
-		path - they both combined
-		extension - the extension of the file, for instance .mp3 or .wma
+	Attributes
+	==========
+		File
+		----
+		dir - directory of the file.
+		fname - current file name. These two properties are taken as an input.
+		path - they both combined.
+		extension - the extension of the file, for instance `.mp3` or `.wma`
 
-		Content:
-		name - a standardized form to name lesson according to the next data
-		rav - the Rav (or any person) that taught the lesson
+		Content
+		-------
+		name - a standardized form to name a lesson according to the next data
+		rav - the rav (or any person) that taught the lesson
 		topic - main topic of the series of lessons
 		title - specific content of this lesson
 		date - full date according to the hebrew calander
 		day - day in month
 		month - hebrew month
-		year - hebrew year. directly from the config file
-		index_letter - numbering in ascending order of lessons in the topic directory
+		year - hebrew year. directly from the `config` file
+		index_letter - numbering in ascending order of lessons in the `topic_dir`
 
-		Helpers:
-		rav_dir - according to the rav field, find his final directory path
-		topic_dir - according to the topic field, find its directory path in the rav_dir
+		Helpers
+		-------
+		rav_dir - according to the `rav` field, find his final directory path
+		topic_dir - according to the `topic` field, 
+				find its directory path in the `rav_dir`
 	
-	Methods:
-		File operations:
+	Methods
+	=======
+		File operations
+		---------------
 		listen() - open the file (works only in windows)
 		delete_file()
 		copy_file(to_dir)
 		move_file(to_dir)
-		is_exists() - validate existence of the file
-		parse_name() - to parse the attributes from the file name. doesn't working.
-		validations() - to validate the parsing. doesn't working.
-		set_fname(name=None) - rename the file to the given parameter or either to the self.name
+		is_exists() - validate the existence of the file.
+		parse_name() - to parse the attributes from the file name. Unsupported.
+		validations() - to validate the parse. Unsupported.
+		set_fname(name=None) - rename the file to the given 
+						name or by default to the `self.name`
 
-		Setters:
+		Setters
+		-------
 		set_rav(rav)
 		set_topic(topic)
 		set_day(day) - also adding ' or " to the letters
 		set_month(month)
 		set_title(title)
-		set_index() - according to the files in topic_dir
+		set_index() - according to the files in `topic_dir`
 	"""
 
 	def __init__(self, directory: str, file_name: str) -> None:
@@ -115,26 +126,33 @@ class Lesson:
 
 	def listen(self) -> None:
 		if not self.is_exists():
-			return print("לא יכול לבצע את הפעולה מפני שהקובץ לא קיים.")
+			print(f"לא ניתן לבצע את הפעולה מפני שהקובץ {self.fname} לא קיים.")
+			return
 		print('האזן לשיעור')
 		print(self.fname)
-		# work only on windows
-		os.startfile(self.path)
+		# works only on windows
+		try:
+			os.startfile(self.path)
+		except:
+			print("לא ניתן להאזין לשיעור, בגלל בעיית הקובץ או המערכת")
 
 	def delete_file(self) -> None:
 		if not self.is_exists():
-			return print("לא יכול לבצע את הפעולה מפני שהקובץ לא קיים.")
+			print(f"לא ניתן לבצע את הפעולה מפני שהקובץ {self.fname} לא קיים.")
+			return
 		os.remove(self.path)
 		print('הקובץ נמחק.')
 
 	def copy_file(self, to_dir: str) -> None:
 		if not self.is_exists():
-			return print("לא יכול לבצע את הפעולה מפני שהקובץ לא קיים.")
+			print(f"לא ניתן לבצע את הפעולה מפני שהקובץ {self.fname} לא קיים.")
+			return
 		shutil.copy2(self.path, os.path.join(to_dir, self.fname))
 
 	def move_file(self, to_dir: str) -> None:
 		if not self.is_exists():
-			return print("לא יכול לבצע את הפעולה מפני שהקובץ לא קיים.")
+			print(f"לא ניתן לבצע את הפעולה מפני שהקובץ {self.fname} לא קיים.")
+			return
 		self.copy_file(to_dir)
 		self.delete_file()
 		self.dir = to_dir
@@ -181,14 +199,18 @@ class Lesson:
 		self.topic = topic
 
 	def set_day(self, day: str) -> None:
-		assert day in MONTH_DAYS
+		if day not in MONTH_DAYS:
+			print(f"יום בחודש שהוזן ({day}) לא תקין")
+			return
 		if len(day.split(' ')[-1]) == 1:
 			self.day = day + "'"
 		else:
 			self.day = day[:-1] + "''" + day[-1]
 
 	def set_month(self, month: str) -> None:
-		assert month in MONTHES
+		if month not in MONTHES:
+			print(f"חודש שהוזן ({month}) לא תקין")
+			return
 		self.month = month
 
 	def set_title(self, title: str) -> None:
@@ -221,30 +243,34 @@ class Lesson:
 
 
 class Editor:
-	"""Class to implement the edit of file names and user interface, 
+	"""Class to implement the edit of file names and handle user interface, 
 	during the edit process in the edit field directory.
-	There are 2 steps in the editor: a loop on the lessons to edit their names,
-	and after moving them to the right places.
+	There are 2 steps in the editor: 
+	1) A loop over the lessons to edit their names.
+	2) Move them all to the new folders.
 	
-	Attributes:
+	Attributes
+	==========
 	dir - the directory to edit its file. provided by the user.
-	lessons - contains the files that in the dir, as "Lesson" instances.
-	index - the index of the current lesson in the dir
+	lessons - list of dir's files, as `Lesson` instances.
+	index - the index of the current lesson in the `dir`
 	cur_lesson - the current lesson that in editing process
 	month - if all the lessons belong to the same month, you can 
 			define it once at the beginning.
 	exit - if set as True the editor will end the editing
 
-	Methods:
+	Methods
+	=======
 	run() - the main method to run the editor
-	edit_lesson() - the main method to edit one file, the cur_lesson
+	edit_lesson() - the main method to edit one file, the `cur_lesson`
 	move_to_dirs() - handle the process that moving all 
 					the lessons to their new dirs.
 
-	Helper Methods:
-	files_to_lessons() - update the lessons according to the file names
-	validate_existence() - update lessons list if files was deleted
-	init_month() - ask the user to define constant month
+	Helper Methods
+	--------------
+	files_to_lessons() - create the `lessons` list from the files
+	validate_existence() - update `lessons` list if files were deleted
+	init_month() - ask the user to define constant `month`
 	print_lessons() - print the names of the lessons
 	choose_lesson() - ask the user which lesson to edit
 	is_valid_les() - ask the user if the lesson is valid or to delete it
@@ -267,12 +293,14 @@ class Editor:
 	def init_month(self) -> None:
 		self.month = input('מה החודש עכשיו? (אם משתנה נא להשאיר ריק) ')
 		while self.month not in MONTHES:
+			if not self.month:
+				break
 			print("שם חודש לא תקין")
 			self.month = input('מה החודש עכשיו? (אם משתנה נא להשאיר ריק) ')
 
 	def files_to_lessons(self) -> None:
 		self.lessons = []
-		for file in os.listdir(config.directory2):
+		for file in os.listdir(self.dir):
 			self.lessons.append(Lesson(self.dir, file))
 	
 	def validate_existence(self) -> None:
@@ -290,7 +318,8 @@ class Editor:
 	
 	def choose_lesson(self) -> None:
 		self.print_lessons()
-		num = input("בחר מס' קובץ לעריכה: (להמשך לפי סדר הקש אנטר/לסיום העריכה כתוב \"יציאה\") ")
+		num = input("בחר מס' קובץ לעריכה: "
+			  "(להמשך לפי סדר הקש אנטר/לסיום העריכה כתוב \"יציאה\") ")
 		if not num:
 			self.index += 1
 			if self.index >= len(self.lessons):
@@ -383,8 +412,8 @@ class Editor:
 		self.cur_lesson.validations()
 	
 	def skip_move(self) -> tuple[list, bool]:
-		"""return tuple that contain list and bool, true = skip the list,
-		false = move only the list"""
+		"""return tuple that contain list and bool, `True` = skip the list,
+		`False` = move only the list"""
 		self.print_lessons()
 		option = input("בחר אפשרות:\n1. העתק הכל.\n2. בחירת קבצים לדילוג.\n"
 				 "3. בחירת קבצים להעברה.\n4. לדלג על העברת הקבצים.\nבחירתך: ")
@@ -406,7 +435,7 @@ class Editor:
 		while option == "3":
 			to_move = input("קבצים להעברה (רווח פשוט ביניהם): ")
 			if not to_move:
-				return ([], True)
+				return ([], False)
 			elif to_move.replace(" ", "").isdigit():
 				lst = to_move.split(" ")
 				return ([int(i)-1 for i in lst], False)
@@ -450,7 +479,7 @@ class Editor:
 
 def define_recorder() -> str:
 	recorder = input("מספר מקלט: ")
-	if recorder in config.recorders_path.keys():
+	if recorder in config.recorders_path:
 		return config.recorders_path[recorder]
 	elif recorder == "":
 		dont_copy = input("האם לדלג על העתקה מהמקלט? (כן/כלום) ")
@@ -487,8 +516,8 @@ def main() -> None:
 	
 	Editor(config.directory2).run()
 
-	# if directory1:
-		# delete_recorder(directory1)
+	if directory1:
+		delete_recorder(directory1)
 	print('\nפעולת התוכנה הסתיימה.\nאנא לא לשכוח לעבור לתיקיית שנת '
        f'{config.CURRENT_YEAR} כדי לסיים את המלאכה.\nאשריך וטוב לך ובהצלחה במשמר!')
 
